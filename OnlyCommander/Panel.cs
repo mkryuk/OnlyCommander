@@ -81,6 +81,8 @@ namespace OnlyCommander
                     DrawItem(i, false);
                 }
                 else
+                    //Rewrite panel with empty strings 
+                    //if items in current directory less than in previous one
                     DrawEmptyString(i);
             }
         }
