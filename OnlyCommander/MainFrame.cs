@@ -85,7 +85,7 @@ namespace OnlyCommander
             //_needToRedraw = true;
             _line = new StringBuilder();
             _key = new ConsoleKeyInfo();
-            _windowRect = new Rectangle(0,0,Console.LargestWindowWidth / 2,Console.LargestWindowHeight / 2);
+            _windowRect = new Rectangle(0, 0, (Console.LargestWindowWidth/2) - 1, Console.LargestWindowHeight/2);
 
             //Standard colors
             BackgroundColor = ConsoleColor.DarkCyan;
