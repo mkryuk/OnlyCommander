@@ -186,5 +186,15 @@ namespace OnlyCommander
                 SetCursorPosition(0);
             }
         }
+
+        public void Disable()
+        {
+            DrawItem(_cursorPosition,false);
+        }
+
+        public void Enable()
+        {
+            SetCursorPosition(_cursorPosition);
+        }
     }
 }

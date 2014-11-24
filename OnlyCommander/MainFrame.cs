@@ -10,7 +10,7 @@ namespace OnlyCommander
         {            
             for (int j = 0; j < rect.Height; j++)
             {
-                Console.Write(String.Format("{0," + (-rect.Width + 1) + "} ", " "));
+                Console.Write("{0," + (-rect.Width + 1) + "} ", " ");
             } 
         }
         public static void DrawFrame(this Rectangle rect, char symbol)
@@ -85,7 +85,7 @@ namespace OnlyCommander
             //_needToRedraw = true;
             _line = new StringBuilder();
             _key = new ConsoleKeyInfo();
-            _windowRect = new Rectangle(0,0,Console.LargestWindowWidth-1,Console.LargestWindowHeight-1);
+            _windowRect = new Rectangle(0,0,Console.LargestWindowWidth / 2,Console.LargestWindowHeight / 2);
 
             //Standard colors
             BackgroundColor = ConsoleColor.DarkCyan;
@@ -188,7 +188,9 @@ namespace OnlyCommander
 
         private void OnTabHandler()
         {
+            _activePanel.Disable();
             _activePanel = _activePanel == _leftPanel ? _rightPanel : _leftPanel;
+            _activePanel.Enable();
         }
         
     }    
