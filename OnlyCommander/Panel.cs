@@ -10,7 +10,7 @@ namespace OnlyCommander
     {
         private MainFrame _parentFrame;
         private Rectangle _windowRect;
-        private List<string> _items;
+        private List<Item> _items;
         private StringBuilder _currentPath;
         private int _cursorPosition;
         private int _topShift;
@@ -23,7 +23,7 @@ namespace OnlyCommander
         {
             _parentFrame = parentFrame;
             _windowRect = windowRect;
-            _items = new List<string>();
+            _items = new List<Item>();
             _currentPath = new StringBuilder(Directory.GetLogicalDrives()[0]);
             _cursorPosition = 0;
             _topShift = 0;
@@ -44,11 +44,11 @@ namespace OnlyCommander
             _items.Clear();
             foreach (var directory in Directory.GetDirectories(_currentPath.ToString()))
             {
-                _items.Add(Path.GetFileName(directory));
+                _items.Add(new Item(Path.GetFileName(directory), PType.Directory));
             }
             foreach (var file in Directory.GetFiles(_currentPath.ToString()))
             {
-                _items.Add(Path.GetFileName(file));
+                _items.Add(new Item(Path.GetFileName(file), PType.File));
             }
         }
 
@@ -59,12 +59,12 @@ namespace OnlyCommander
             {
                 if (i < _items.Count)
                 {
-                    DrawItem(i,false);
+                    DrawItem(i, false);
                 }
                 else
                     DrawEmptyString(i);
-            }            
-        }        
+            }
+        }
 
         private void DrawItem(int position, bool isActive)
         {
@@ -73,7 +73,7 @@ namespace OnlyCommander
                 Console.SetCursorPosition(_windowRect.Left, _windowRect.Top + position);
                 Console.BackgroundColor = isActive ? _backgroundActiveColor : _backgroundColor;
                 Console.ForegroundColor = isActive ? _foregroundActiveColor : _foregroundColor;
-                Console.Write(String.Format("{0," + (-_windowRect.Width + 1) + "} ", _items[position + _topShift]));
+                Console.Write(String.Format("{0," + (-_windowRect.Width + 1) + "} ", _items[position + _topShift].Path));
             }
         }
 
@@ -89,30 +89,30 @@ namespace OnlyCommander
 
         public void SetCursorPosition(int i)
         {
-            _cursorPosition = i;            
-            DrawItem(i,true);
+            _cursorPosition = i;
+            DrawItem(i, true);
         }
 
         public void OnDownArrowHandler()
         {
-            if (_cursorPosition < _windowRect.Height-1 && _cursorPosition < _items.Count - 1)
+            if (_cursorPosition < _windowRect.Height - 1 && _cursorPosition < _items.Count - 1)
             {
-                DrawItem(_cursorPosition,false);
+                DrawItem(_cursorPosition, false);
                 SetCursorPosition(++_cursorPosition);
             }
-            else if (_cursorPosition +_topShift < _items.Count -1)            
+            else if (_cursorPosition + _topShift < _items.Count - 1)
             {
                 _topShift++;
                 Draw();
                 SetCursorPosition(_cursorPosition);
             }
-        }       
+        }
 
         public void OnUpArrowHandler()
         {
             if (_cursorPosition > 0)
             {
-                DrawItem(_cursorPosition,false);
+                DrawItem(_cursorPosition, false);
                 SetCursorPosition(--_cursorPosition);
             }
             else if (_topShift > 0)
@@ -125,10 +125,9 @@ namespace OnlyCommander
 
         public void OnEnterHandler()
         {
-            string fullPath = Path.Combine(_currentPath.ToString(), _items[_cursorPosition]);
-            FileAttributes attr = File.GetAttributes(fullPath);
-            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+            if (_items[_cursorPosition].Type == PType.Directory)
             {
+                string fullPath = Path.Combine(_currentPath.ToString(), _items[_cursorPosition].Path);
                 _currentPath = new StringBuilder(fullPath);
                 FillItems();
                 Draw();
@@ -143,9 +142,10 @@ namespace OnlyCommander
                 string fullPath = Directory.GetParent(_currentPath.ToString()).ToString();
                 _currentPath = new StringBuilder(fullPath);
                 FillItems();
+                _topShift = 0;
                 Draw();
                 SetCursorPosition(0);
-            }            
+            }
         }
     }
 }
