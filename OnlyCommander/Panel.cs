@@ -17,8 +17,14 @@ namespace OnlyCommander
 
         private readonly ConsoleColor _backgroundColor;
         private readonly ConsoleColor _backgroundActiveColor;
+
+        //main foreground colors
         private readonly ConsoleColor _foregroundColor;
         private readonly ConsoleColor _foregroundActiveColor;
+
+        //foreground colors for files
+        private readonly ConsoleColor _foregroundFileColor;
+        private readonly ConsoleColor _foregroundFileActiveColor;
         public Panel(MainFrame parentFrame, Rectangle windowRect)
         {
             _parentFrame = parentFrame;
@@ -36,20 +42,33 @@ namespace OnlyCommander
             _backgroundActiveColor = _parentFrame.BackgroundActiveColor;
             _foregroundActiveColor = _parentFrame.ForegroundActiveColor;
 
+            //Foreground file colors
+            _foregroundFileColor = _parentFrame.ForegroundFileColor;
+            _foregroundFileActiveColor = _parentFrame.ForegroundActiveFileColor;
+
             FillItems();
         }
 
         private void FillItems()
-        {
-            _items.Clear();
-            foreach (var directory in Directory.GetDirectories(_currentPath.ToString()))
+        {            
+            try
             {
-                _items.Add(new Item(Path.GetFileName(directory), PType.Directory));
+                var directories = Directory.GetDirectories(_currentPath.ToString());
+                var files = Directory.GetFiles(_currentPath.ToString());                
+                _items.Clear();
+                foreach (var directory in directories)
+                {
+                    _items.Add(new Item(Path.GetFileName(directory), PType.Directory));
+                }
+                foreach (var file in files)
+                {
+                    _items.Add(new Item(Path.GetFileName(file), PType.File));
+                }
             }
-            foreach (var file in Directory.GetFiles(_currentPath.ToString()))
+            catch (UnauthorizedAccessException exception)
             {
-                _items.Add(new Item(Path.GetFileName(file), PType.File));
-            }
+                throw;
+            }            
         }
 
         public void Draw()
@@ -67,13 +86,22 @@ namespace OnlyCommander
         }
 
         private void DrawItem(int position, bool isActive)
-        {
+        {            
             if (position < _items.Count && _items.Count != 0)
             {
+                var currentItem = _items[position + _topShift];
                 Console.SetCursorPosition(_windowRect.Left, _windowRect.Top + position);
-                Console.BackgroundColor = isActive ? _backgroundActiveColor : _backgroundColor;
-                Console.ForegroundColor = isActive ? _foregroundActiveColor : _foregroundColor;
-                Console.Write(String.Format("{0," + (-_windowRect.Width + 1) + "} ", _items[position + _topShift].Path));
+                if (currentItem.Type == PType.Directory)
+                {
+                    Console.BackgroundColor = isActive ? _backgroundActiveColor : _backgroundColor;
+                    Console.ForegroundColor = isActive ? _foregroundActiveColor : _foregroundColor;
+                }
+                else
+                {
+                    Console.BackgroundColor = isActive ? _backgroundActiveColor : _backgroundColor;
+                    Console.ForegroundColor = isActive ? _foregroundFileActiveColor : _foregroundFileColor;
+                }
+                Console.Write("{0," + (-_windowRect.Width + 1) + "} ", currentItem.Path);
             }
         }
 
@@ -82,7 +110,7 @@ namespace OnlyCommander
             Console.SetCursorPosition(_windowRect.Left, _windowRect.Top + position);
             Console.BackgroundColor = _backgroundColor;
             Console.ForegroundColor = _foregroundColor;
-            Console.Write(String.Format("{0," + (-_windowRect.Width + 1) + "} ", " "));
+            Console.Write("{0," + (-_windowRect.Width + 1) + "} ", " ");
         }
 
 
@@ -95,11 +123,13 @@ namespace OnlyCommander
 
         public void OnDownArrowHandler()
         {
+            //if we are fits in window
             if (_cursorPosition < _windowRect.Height - 1 && _cursorPosition < _items.Count - 1)
             {
                 DrawItem(_cursorPosition, false);
                 SetCursorPosition(++_cursorPosition);
             }
+            //if we should show files that are not fits the window
             else if (_cursorPosition + _topShift < _items.Count - 1)
             {
                 _topShift++;
@@ -129,9 +159,18 @@ namespace OnlyCommander
             {
                 string fullPath = Path.Combine(_currentPath.ToString(), _items[_cursorPosition].Path);
                 _currentPath = new StringBuilder(fullPath);
-                FillItems();
-                Draw();
-                SetCursorPosition(0);
+                try
+                {
+                    FillItems();
+                    Draw();
+                    SetCursorPosition(0);
+                }
+                catch (UnauthorizedAccessException exception)
+                {
+                    //change the current path back                
+                    _currentPath = new StringBuilder(Directory.GetParent(_currentPath.ToString()).ToString());
+                    return;
+                }                
             }
         }
 
@@ -139,7 +178,7 @@ namespace OnlyCommander
         {
             if (Directory.GetParent(_currentPath.ToString()) != null)
             {
-                string fullPath = Directory.GetParent(_currentPath.ToString()).ToString();
+                var fullPath = Directory.GetParent(_currentPath.ToString()).ToString();
                 _currentPath = new StringBuilder(fullPath);
                 FillItems();
                 _topShift = 0;

@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Drawing;
 
 namespace OnlyCommander
@@ -14,14 +7,11 @@ namespace OnlyCommander
     public static class RectangleExtention
     {
         public static void DrawLayout(this Rectangle rect)
-        {
-            for (int i = 0; i < rect.Width; i++)
+        {            
+            for (int j = 0; j < rect.Height; j++)
             {
-                for (int j = 0; j < rect.Height; j++)
-                {
-                    Console.Write(" ");
-                }
-            }
+                Console.Write(String.Format("{0," + (-rect.Width + 1) + "} ", " "));
+            } 
         }
         public static void DrawFrame(this Rectangle rect, char symbol)
         {
@@ -70,8 +60,14 @@ namespace OnlyCommander
 
         public ConsoleColor BackgroundColor;
         public ConsoleColor BackgroundActiveColor;
+
+        //main foreground colors
         public ConsoleColor ForegroundColor;
         public ConsoleColor ForegroundActiveColor;
+
+        //foreground colors for files
+        public ConsoleColor ForegroundFileColor;
+        public ConsoleColor ForegroundActiveFileColor;
 
         public Rectangle ClientRect {
             get
@@ -89,7 +85,7 @@ namespace OnlyCommander
             //_needToRedraw = true;
             _line = new StringBuilder();
             _key = new ConsoleKeyInfo();
-            _windowRect = new Rectangle(0,0,101,41);
+            _windowRect = new Rectangle(0,0,Console.LargestWindowWidth-1,Console.LargestWindowHeight-1);
 
             //Standard colors
             BackgroundColor = ConsoleColor.DarkCyan;
@@ -98,6 +94,10 @@ namespace OnlyCommander
             //Active colors
             BackgroundActiveColor = ConsoleColor.DarkBlue;
             ForegroundActiveColor = ConsoleColor.Yellow;
+
+            //File colors
+            ForegroundFileColor = ConsoleColor.Cyan;
+            ForegroundActiveFileColor = ConsoleColor.Yellow;
 
             //Create left panel
             _leftPanel = new Panel(this,
